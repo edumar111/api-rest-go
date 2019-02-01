@@ -51,5 +51,15 @@ var routes = Routes{
 		"POST",
 		"/movies",
 		MovieAdd,
+	}, Route{
+		"MovieUpdate",
+		"PUT",
+		"/movies/{id}",
+		MovieUpdate,
+	}, Route{
+		"MovieRemove",
+		"DELETE",
+		"/movies/{id}",
+		MovieRemove,
 	},
 }

@@ -94,3 +94,68 @@ func MovieAdd(w http.ResponseWriter, r *http.Request) {
 	responseMovie(w, 200, movie_data)
 
 }
+
+func MovieUpdate(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	movie_id := params["id"]
+
+	if !bson.IsObjectIdHex(movie_id) {
+		w.WriteHeader(404)
+		return
+	}
+
+	oid := bson.ObjectIdHex(movie_id)
+
+	decoder := json.NewDecoder(r.Body)
+
+	var movie_data Movie
+	err := decoder.Decode(&movie_data)
+
+	if err != nil {
+		log.Fatal(err)
+		w.WriteHeader(500)
+		return
+	}
+
+	defer r.Body.Close()
+
+	document := bson.M{"_id": oid}
+	change := bson.M{"$set": movie_data}
+	err = collection.Update(document, change)
+
+	if err != nil {
+		w.WriteHeader(404)
+		return
+	}
+
+	responseMovie(w, 200, movie_data)
+}
+
+func MovieRemove(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	movie_id := params["id"]
+
+	if !bson.IsObjectIdHex(movie_id) {
+		w.WriteHeader(404)
+		return
+	}
+
+	oid := bson.ObjectIdHex(movie_id)
+
+	err := collection.RemoveId(oid)
+	if err != nil {
+		w.WriteHeader(404)
+		return
+	}
+
+	//results := Message{"success", "La pelicula con ID "+movie_id+" ha sido borrada correctamente"}
+	message := new(Message)
+
+	message.setStatus("success")
+	message.setMessage("La pelicula con ID " + movie_id + " ha sido borrada correctamente")
+
+	results := message
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	json.NewEncoder(w).Encode(results)
+}
